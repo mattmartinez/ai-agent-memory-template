@@ -1,0 +1,1 @@
+A structured memory architecture for AI coding agents. Drop-in templates for Claude Code (CLAUDE.md) and OpenClaw (AGENTS.md) - decisions, mistakes, project state, and daily logs that survive session restarts.
