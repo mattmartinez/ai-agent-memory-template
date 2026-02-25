@@ -1,17 +1,32 @@
 # Claude Code Memory System — Setup Template
 _Cognitive infrastructure for persistent, structured agent memory in Claude Code._
 
-Claude Code starts fresh every session. Without a deliberate file system, nothing survives restarts. This template gives you a layered memory architecture — daily logs for raw notes, structured files for curated state, identity files for who you are and how you work.
+Claude Code starts fresh every session. Without a deliberate file system, nothing survives restarts. This template gives you a layered memory architecture — daily logs for raw notes, structured files for curated state, identity context for who you are and how you work.
 
 ---
 
-## The Architecture
+## How Claude Code Memory Works
+
+**Only `CLAUDE.md` is loaded automatically.** Everything else only exists if you tell `CLAUDE.md` to read it.
+
+This template uses that to recreate the full structured memory system as an explicit pattern. You have two approaches:
+
+**Option A — Simple (everything in CLAUDE.md):**
+Put your persona, preferences, and rules directly inline in `CLAUDE.md`. Less files, less setup. Works fine for solo projects.
+
+**Option B — Structured (multi-file, scales better):**
+Split context into dedicated files (`USER.md`, `DECISIONS.md`, etc.) and instruct `CLAUDE.md` to read them at boot. More organized, easier to maintain long-term. This is the pattern this template follows.
+
+This is the same architecture used by [OpenClaw](https://github.com/openclaw/openclaw) — ported to work in raw Claude Code.
+
+---
+
+## The Architecture (Option B)
 
 ```
 project/ (or ~/.claude/ for global config)
-├── CLAUDE.md          ← Boot instructions (Claude reads this automatically)
-├── SOUL.md            ← Agent persona, tone, priorities
-├── USER.md            ← Who you are, communication style, code preferences
+├── CLAUDE.md          ← Auto-loaded by Claude Code. Controls everything.
+├── USER.md            ← Who you are: style, stack, preferences (optional split)
 ├── DECISIONS.md       ← Major decisions + reasoning (permanent log)
 ├── ERRORS.md          ← Mistakes and lessons (never repeat these)
 ├── PROJECTS.md        ← Active project state, pipeline, key dates
@@ -20,12 +35,16 @@ project/ (or ~/.claude/ for global config)
     └── YYYY-MM-DD.md  ← Daily raw notes (written during/after sessions)
 ```
 
+> **Note:** File names like `USER.md`, `DECISIONS.md` etc. are conventions, not built-in Claude Code behavior. They work because `CLAUDE.md` instructs Claude to read them. You can name them anything.
+
 **Two placement options:**
 - `~/.claude/CLAUDE.md` — global, applies to every Claude Code session on your machine
 - `./CLAUDE.md` in a project root — project-scoped, only applies in that directory
 
+You can have both. Claude Code merges them, with project-level taking precedence.
+
 **Three layers:**
-1. **Identity** (`SOUL.md`, `USER.md`) — stable context, loaded every session
+1. **Identity** (`USER.md` or inline in `CLAUDE.md`) — stable context, loaded every session
 2. **Structured state** (`DECISIONS.md`, `ERRORS.md`, `PROJECTS.md`) — curated, always current
 3. **Raw logs** (`memory/YYYY-MM-DD.md`) — daily scratch pad, distilled periodically
 
@@ -38,17 +57,21 @@ Claude Code reads `CLAUDE.md` automatically at session start. This is where you 
 Put this in `CLAUDE.md`:
 
 ```markdown
+## Who You Are
+[Inline persona here — tone, operating style, priorities.
+ OR: skip this block and put it in a separate file like AGENT.md,
+ then add "Read AGENT.md" as step 1 below.]
+
 ## Session Boot Sequence (NON-NEGOTIABLE)
 
 Before responding to anything, read these files in order:
 
-1. Read `SOUL.md` — who you are and how you operate
-2. Read `USER.md` — who you're helping, their style and preferences
-3. Read `DECISIONS.md` — major decisions already made, don't re-litigate
-4. Read `ERRORS.md` — mistakes never to repeat
-5. Read `PROJECTS.md` — active project state and priorities
-6. Read `memory/YYYY-MM-DD.md` for today and yesterday — recent context
-7. Read `MEMORY.md` if it exists — live private state
+1. Read `USER.md` — who you're helping, their style and preferences
+2. Read `DECISIONS.md` — major decisions already made, don't re-litigate
+3. Read `ERRORS.md` — mistakes never to repeat
+4. Read `PROJECTS.md` — active project state and priorities
+5. Read `memory/YYYY-MM-DD.md` for today and yesterday — recent context
+6. Read `MEMORY.md` if it exists — live private state
 
 No execution before context. No advice without state awareness.
 
@@ -78,37 +101,7 @@ Every few sessions, run a memory hygiene pass:
 
 ---
 
-## Step 2 — SOUL.md (Agent Identity)
-
-Who the agent is. Tone, priorities, operating style. Loaded every session.
-
-Put this in `SOUL.md`:
-
-```markdown
-# SOUL.md
-
-- **Name:** [Agent name or just "Claude"]
-- **Role:** [What this agent does — e.g., "DevOps copilot for [project]"]
-- **Tone:** [e.g., blunt, direct, no fluff / detailed, step-by-step]
-- **Priorities (in order):**
-  1. [Top priority]
-  2. [Second priority]
-  3. ...
-
-## What I Am
-[One paragraph describing operating mode and purpose]
-
-## Voice
-[Communication style — formality, what to avoid, how to format responses]
-
-## Boundaries
-- [Hard rules — e.g., "Ask before running destructive commands"]
-- [e.g., "Never share credentials in output"]
-```
-
----
-
-## Step 3 — USER.md (Human Profile)
+## Step 2 — USER.md (Human Profile)
 
 Who the user is. Communication style, technical level, code and writing preferences.
 
@@ -141,7 +134,7 @@ Put this in `USER.md`:
 
 ---
 
-## Step 4 — DECISIONS.md (Decision Log)
+## Step 3 — DECISIONS.md (Decision Log)
 
 Every major decision gets logged with context and date. Prevents re-litigating old choices.
 
@@ -166,7 +159,7 @@ _Major decisions + reasoning. Log date + context. Archive if reversed, never del
 
 ---
 
-## Step 5 — ERRORS.md (Mistake Log)
+## Step 4 — ERRORS.md (Mistake Log)
 
 Mistakes, bad assumptions, failed experiments. Read before acting.
 
@@ -191,7 +184,7 @@ _Mistakes and hard lessons. Read this. Never repeat these._
 
 ---
 
-## Step 6 — PROJECTS.md (Project State)
+## Step 5 — PROJECTS.md (Project State)
 
 Active projects, status, pipeline, key dates. Keeps MEMORY.md lean.
 
@@ -226,7 +219,7 @@ _Active projects and key dates. Update when things change._
 
 ---
 
-## Step 7 — MEMORY.md (Live Private State)
+## Step 6 — MEMORY.md (Live Private State)
 
 System config, private context, anything that changes frequently. Keep it lean.
 
@@ -245,7 +238,7 @@ _Load every session. Update aggressively._
 
 ---
 
-## Step 8 — Daily Notes
+## Step 7 — Daily Notes
 
 The agent writes to `memory/YYYY-MM-DD.md` during and after sessions. No strict format needed — raw notes that capture what happened, what was decided, what to follow up on.
 
@@ -256,7 +249,7 @@ The `CLAUDE.md` boot sequence instruction handles this automatically.
 ## Global vs Project Scope
 
 **Global (`~/.claude/CLAUDE.md`):**
-Use for preferences and identity that apply everywhere — your communication style, code style, universal rules. `USER.md`, `SOUL.md`, and `ERRORS.md` are good candidates for global scope.
+Use for preferences and identity that apply everywhere — your communication style, code style, universal rules. `USER.md` and `ERRORS.md` are good candidates for global scope. Your persona/operating instructions live inline in `CLAUDE.md` here.
 
 **Project (`./CLAUDE.md`):**
 Use for project-specific context — active decisions, current state, project-scoped mistakes. `DECISIONS.md`, `PROJECTS.md`, and daily logs belong here.
@@ -280,7 +273,7 @@ You can have both — Claude Code merges them, with project-level taking precede
 
 | Content | File |
 |---------|------|
-| Agent persona, tone, priorities | `SOUL.md` |
+| Agent persona, tone, priorities | inline in `CLAUDE.md` (or a separate file it reads) |
 | Your style, stack, preferences | `USER.md` |
 | A strategic or technical decision | `DECISIONS.md` |
 | A mistake or failed experiment | `ERRORS.md` |
